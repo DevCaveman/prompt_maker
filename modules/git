@@ -1,0 +1,20 @@
+function git_prompt ()
+{
+    if git rev-parse --git-dir >/dev/null 2>&1 ; then  
+        local prompt=''
+        local branch=$(git branch 2>/dev/null| sed -n '/^\*/s/^\* //p')
+        local reset="\001$(tput sgr0)\002"
+    
+        if git status | grep "nothing to commit" >/dev/null 2>&1 ; then
+        # CLEAN
+            prompt="${GIT_PREFIX}${GIT_BRANCH_COLOR_CLEAN}${branch}${reset}${GIT_STATUS_CLEAN}${GIT_SUFFIX}"
+        else
+        # DIRTY
+            prompt="${GIT_PREFIX}${GIT_BRANCH_COLOR_DIRTY}${branch}${reset}${GIT_STATUS_DIRTY}${GIT_SUFFIX}"
+        fi
+    
+        printf "${prompt}"
+
+    fi
+}
+

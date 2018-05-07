@@ -1,0 +1,10 @@
+source ~/.prompt_maker/var/indicators/error_indicartors
+# Error indicator
+function error_ind ()
+{
+    if [ ! $? -ne 0 ]; then
+        printf "${ERROR_INDICATOR_RIGHT}"
+    else
+        printf "${ERROR_INDICATOR_WRONG}"
+    fi
+}

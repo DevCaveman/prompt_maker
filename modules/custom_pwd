@@ -1,0 +1,130 @@
+#!/bin/bash
+#
+function custom_pwd ()
+{
+    # color
+    local reset="\001$(tput sgr0)\002"
+    local gray="\001\033[38;5;237m\002"
+    if [ -z "$CUSTOM_PWD_COLOR" ]; then
+        CUSTOM_PWD_COLOR="\001\033[38;5;241m\002"
+    fi
+
+    # PWD function types   
+    function max_length ()
+    {
+        local pwd_length=20 # Tamanho máximo do PWD
+        local newPWD=""
+        local dir=$(pwd)
+    
+        # Test if current dir is the home directory
+        echo $dir | grep "^$HOME" >> /dev/null
+        if [ $? -eq 0 ]; then # True if current dir is home directory
+            # Remove /home/user  from current PWD
+            local currdir=$(echo $dir | awk -F$HOME '{print $2}')
+            newPWD="~$currdir"
+
+            # Test if $newPWd is greater than $pwd_length
+            if [ $(echo -n $newPWD | wc -c | tr -d " ") -gt $pwd_length ]; then
+                # Only print last letters based on $pwd_length 
+                newPWD="~/..$(echo -n $PWD | sed -e "s/.*\(.\{$pwd_length\}\)/\1/")"
+            fi
+
+        elif [ "$dir" = "$HOME" ]; then
+            newPWD="~"
+
+        # Not in home directory
+        # Test if the current dir is greater than $pwd_length
+        elif [ $(echo -n $PWD | wc -c | tr -d " ") -gt $pwd_length ]; then
+            # Only print last letters based on $pwd_length 
+            newPWD="..$(echo -n $PWD | sed -e "s/.*\(.\{$pwd_length\}\)/\1/")"
+        else
+            newPWD="$(echo -n $PWD)"
+        fi
+    
+        # Print the new pwd.
+        printf "${CUSTOM_PWD_COLOR}${newPWD}${reset}"
+    }
+    
+    function base_name ()
+    {
+        local base_dir="${PWD##*/}" # Base name of current directory
+    
+        # Test if current dir is the home directory
+        echo $PWD | grep "^$HOME" >> /dev/null
+        if [ $? -eq 0 ]; then # True if current dir is home directory
+            if [ "$PWD" = "$HOME" ]; then # True if current dir is /home/user/
+                printf "${CUSTOM_PWD_COLOR}~${reset}"
+            else
+                printf "${gray}~/${CUSTOM_PWD_COLOR}${base_dir}${reset}"
+            fi
+        elif [ "$PWD" = "$HOME" ]; then
+            printf "${CUSTOM_PWD_COLOR}~${reset}"
+        else 
+            # current dir is not home
+            if [ "$PWD" = "/" ]; then # True if current dir is /
+                printf "${CUSTOM_PWD_COLOR}/${reset}"
+            else 
+                printf "${gray}/${CUSTOM_PWD_COLOR}${base_dir}${reset}"
+            fi
+        fi
+    }
+
+    function pwd_dot ()
+    {
+        local base_dir="${PWD##*/}" # base name of the current directory
+        local dots=""
+        local currdir=""
+        local dir_number=0
+
+        # Function that makes dot string
+        function count_dots ()
+        {
+            dir_number=$[dir_number-1] # correcting numbers of /
+            local count=1
+            while [ $count -le $dir_number ]; do
+                dots="../${dots}"
+                count=$[count+1]
+            done
+        }
+
+        # Test if current dir is the home directory
+        echo $PWD | grep "^$HOME" >> /dev/null
+        if [ $? -eq 0 ]; then # True if current dir is home directory
+            if [ "$PWD" = "$HOME" ]; then # True if current dir is /home/user/
+                printf "${CUSTOM_PWD_COLOR}~${reset}"
+            else
+                dots=""
+                currdir=$(echo -n $PWD | awk -F$HOME '{print $2}') # Removing /home/user from $PWD
+                dir_number=$(grep -o "/" <<<"$currdir" | wc -l) # greping the numbers of / in $currdir
+                count_dots
+                printf "${gray}~/${dots}${CUSTOM_PWD_COLOR}${base_dir}${reset}"
+            fi
+        else 
+            # current dir is not home
+            if [ "$PWD" = "/" ]; then # True if current dir is /
+                printf "${CUSTOM_PWD_COLOR}/${reset}"
+            else 
+                dots=""
+                dir_number=$(grep -o "/" <<<"$PWD" | wc -l) # greping the numbers of / in $PWD
+                count_dots
+                printf "${gray}${dots}${CUSTOM_PWD_COLOR}${base_dir}${reset}"
+            fi
+        fi   
+    }
+    
+    # Load PWD type on the fly
+    case "$CUSTOM_PWD_TYPE" in
+        'max')
+            max_length
+        ;;
+        'base')
+            base_name
+        ;;
+        'dots')
+            pwd_dot
+        ;;
+        *)
+            echo -n "PWD_TYPE_ERROR"
+        ;;
+    esac
+}

@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+#
+if [ -f $HOME/.prompt_maker/var/theme ]; then
+    # Loading theme var
+    . $HOME/.prompt_maker/var/theme
+
+    if [ -f $HOME/.prompt_maker/themes/${prompt_maker_theme}.theme.sh ]; then
+        # Export environment variables for themes.
+        export PM_PROMPT=''
+        export GIT_PREFIX=''
+        export GIT_SUFFIX=''
+        export GIT_STATUS_CLEAN=''
+        export GIT_STATUS_DIRTY=''
+        export GIT_BRANCH_COLOR_CLEAN=''
+        export GIT_BRANCH_COLOR_DIRTY=''
+        export CUSTOM_PWD_COLOR=''
+        export CUSTOM_PWD_TYPE=''
+        # Loading theme.
+        . $HOME/.prompt_maker/themes/${prompt_maker_theme}.theme.sh
+    
+        # Exporting PS1
+        export PS1=$PM_PROMPT
+        unset PM_PROMPT
+    
+    else
+        # Unseting PM variables.
+        unset PM_PROMPT
+        unset GIT_PREFIX
+        unset GIT_SUFFIX
+        unset GIT_STATUS_CLEAN
+        unset GIT_STATUS_DIRTY
+        unset GIT_BRANCH_COLOR_CLEAN
+        unset GIT_BRANCH_COLOR_DIRTY
+        unset CUSTOM_PWD_COLOR
+        unset CUSTOM_PWD_TYPE
+        echo "Theme '${prompt_maker_theme}' not found or not exist!"
+    fi
+
+    # TO DO, criar alguns aliases para mudar temas
+    alias pm-theme='echo "ARG->nome_tema ou chamar uma função que muda o tema"'
+
+else
+    echo "ARCHIVE '${HOME}/.prompt_maker/var/theme' NOT FOUND."
+fi
+
